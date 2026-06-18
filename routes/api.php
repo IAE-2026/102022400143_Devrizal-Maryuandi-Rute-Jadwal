@@ -16,4 +16,8 @@ Route::prefix('v1')
         // Critical transaction — butuh JWT SSO tambahan
         Route::post('/routes/{id}/reserve-seats', [RouteController::class, 'reserveSeats'])
             ->middleware('sso.jwt');
+
+        // Kompensasi reserve-seats (pembatalan/gagal bayar) — juga butuh JWT SSO
+        Route::post('/routes/{id}/release-seats', [RouteController::class, 'releaseSeats'])
+            ->middleware('sso.jwt');
     });

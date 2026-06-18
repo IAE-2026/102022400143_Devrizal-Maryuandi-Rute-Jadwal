@@ -1,0 +1,313 @@
+{
+  "info": {
+    "name": "Route & Schedule Service (Tugas 3 - IAE)",
+    "_postman_id": "a1b2c3d4-route-schedule-iae-2026",
+    "description": "Collection lengkap endpoint Route & Schedule Service.\n\nCara pakai:\n1. Pilih environment / set variabel collection: baseUrl, iaeKey, ssoBaseUrl, apiKey.\n2. Jalankan 'Auth > Get M2M Token' SEKALI -> token otomatis tersimpan ke variabel {{jwt}}.\n3. Endpoint kritis (reserve/release) otomatis pakai {{jwt}}.\n\nHeader wajib:\n- X-IAE-KEY: {{iaeKey}} (semua endpoint)\n- Authorization: Bearer {{jwt}} (hanya reserve-seats & release-seats)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost", "type": "string" },
+    { "key": "iaeKey", "value": "102022400143", "type": "string" },
+    { "key": "ssoBaseUrl", "value": "https://iae-sso.virtualfri.id", "type": "string" },
+    { "key": "apiKey", "value": "KEY-MHS-216", "type": "string" },
+    { "key": "jwt", "value": "", "type": "string" },
+    { "key": "routeId", "value": "1", "type": "string" },
+    { "key": "bookingRef", "value": "BOOK-2026-0001", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Get M2M Token (auto-save {{jwt}})",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "const token = json.token || json.access_token || (json.data && json.data.token);",
+                  "if (token) {",
+                  "    pm.collectionVariables.set('jwt', token);",
+                  "    console.log('JWT tersimpan ke variabel {{jwt}}');",
+                  "    pm.test('Token diterima', () => pm.expect(token).to.be.a('string'));",
+                  "} else {",
+                  "    pm.test('Token TIDAK ditemukan di response', () => pm.expect.fail('Cek struktur response token'));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"api_key\": \"{{apiKey}}\"\n}"
+            },
+            "url": {
+              "raw": "{{ssoBaseUrl}}/api/v1/auth/token",
+              "host": ["{{ssoBaseUrl}}"],
+              "path": ["api", "v1", "auth", "token"]
+            },
+            "description": "Ambil token M2M (client_credentials) dari SSO Dosen. Token di-map ke role 'service' sehingga diizinkan reserve/release. Test script otomatis menyimpan token ke {{jwt}}."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Routes (Public - X-IAE-KEY saja)",
+      "item": [
+        {
+          "name": "GET - List semua routes",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "X-IAE-KEY", "value": "{{iaeKey}}" } ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/routes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "routes"]
+            }
+          }
+        },
+        {
+          "name": "GET - Search routes (filter + pagination)",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "X-IAE-KEY", "value": "{{iaeKey}}" } ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/routes?origin=Bandung&destination=Jakarta&status=available&min_seats=2&per_page=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "routes"],
+              "query": [
+                { "key": "origin", "value": "Bandung" },
+                { "key": "destination", "value": "Jakarta" },
+                { "key": "departure_date", "value": "2026-06-20", "disabled": true },
+                { "key": "vehicle_type", "value": "bus", "disabled": true },
+                { "key": "status", "value": "available" },
+                { "key": "min_seats", "value": "2" },
+                { "key": "per_page", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET - Detail route by ID",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "X-IAE-KEY", "value": "{{iaeKey}}" } ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/routes/{{routeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "routes", "{{routeId}}"]
+            }
+          }
+        },
+        {
+          "name": "POST - Create route",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-IAE-KEY", "value": "{{iaeKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"route_code\": \"RT-BDG-JKT-01\",\n  \"origin\": \"Bandung\",\n  \"destination\": \"Jakarta\",\n  \"departure_point\": \"Terminal Leuwipanjang\",\n  \"arrival_point\": \"Terminal Kampung Rambutan\",\n  \"departure_date\": \"2026-06-20\",\n  \"departure_time\": \"08:00\",\n  \"arrival_time\": \"11:00\",\n  \"vehicle_type\": \"bus\",\n  \"price\": 120000,\n  \"seat_capacity\": 40,\n  \"available_seats\": 40,\n  \"status\": \"available\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/routes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "routes"]
+            }
+          }
+        },
+        {
+          "name": "PUT - Update route",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-IAE-KEY", "value": "{{iaeKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 135000,\n  \"status\": \"available\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/routes/{{routeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "routes", "{{routeId}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE - Hapus route",
+          "request": {
+            "method": "DELETE",
+            "header": [ { "key": "X-IAE-KEY", "value": "{{iaeKey}}" } ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/routes/{{routeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "routes", "{{routeId}}"]
+            }
+          }
+        },
+        {
+          "name": "POST - Reset seats (utility/testing)",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "X-IAE-KEY", "value": "{{iaeKey}}" } ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/routes/{{routeId}}/reset-seats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "routes", "{{routeId}}", "reset-seats"]
+            },
+            "description": "Reset available_seats ke kapasitas penuh. Tool testing, bukan bagian kontrak bisnis."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transaksi Kritis (JWT + X-IAE-KEY)",
+      "item": [
+        {
+          "name": "POST - Reserve seats",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-IAE-KEY", "value": "{{iaeKey}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 2,\n  \"booking_reference\": \"{{bookingRef}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/routes/{{routeId}}/reserve-seats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "routes", "{{routeId}}", "reserve-seats"]
+            },
+            "description": "Transaksi kritis: lock row -> SOAP audit RESERVE_SEATS -> kurangi available_seats -> publish RabbitMQ route.seat_reserved. Harapan: 200."
+          }
+        },
+        {
+          "name": "POST - Release seats (kompensasi)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-IAE-KEY", "value": "{{iaeKey}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 2,\n  \"booking_reference\": \"{{bookingRef}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/routes/{{routeId}}/release-seats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "routes", "{{routeId}}", "release-seats"]
+            },
+            "description": "Kompensasi reserve: lock row -> SOAP audit RELEASE_SEATS -> tambah available_seats (guard kapasitas) -> publish RabbitMQ route.seat_released. Harapan: 200."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Skenario Error (release-seats)",
+      "item": [
+        {
+          "name": "401 - Tanpa JWT",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-IAE-KEY", "value": "{{iaeKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"quantity\": 2,\n  \"booking_reference\": \"{{bookingRef}}\"\n}" },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/routes/{{routeId}}/release-seats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "routes", "{{routeId}}", "release-seats"]
+            },
+            "description": "Tidak ada Authorization header -> harapan 401."
+          }
+        },
+        {
+          "name": "401 - Tanpa X-IAE-KEY",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"quantity\": 2,\n  \"booking_reference\": \"{{bookingRef}}\"\n}" },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/routes/{{routeId}}/release-seats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "routes", "{{routeId}}", "release-seats"]
+            },
+            "description": "Tidak ada X-IAE-KEY -> harapan 401."
+          }
+        },
+        {
+          "name": "422 - Body invalid (quantity 0)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-IAE-KEY", "value": "{{iaeKey}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"quantity\": 0,\n  \"booking_reference\": \"\"\n}" },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/routes/{{routeId}}/release-seats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "routes", "{{routeId}}", "release-seats"]
+            },
+            "description": "quantity < 1 dan booking_reference kosong -> harapan 422."
+          }
+        },
+        {
+          "name": "404 - Route tidak ada",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-IAE-KEY", "value": "{{iaeKey}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"quantity\": 2,\n  \"booking_reference\": \"{{bookingRef}}\"\n}" },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/routes/999999/release-seats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "routes", "999999", "release-seats"]
+            },
+            "description": "ID tidak ada -> harapan 404."
+          }
+        },
+        {
+          "name": "409 - Over-release (melebihi kapasitas)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-IAE-KEY", "value": "{{iaeKey}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"quantity\": 9999,\n  \"booking_reference\": \"{{bookingRef}}\"\n}" },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/routes/{{routeId}}/release-seats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "routes", "{{routeId}}", "release-seats"]
+            },
+            "description": "Mengembalikan kursi jauh melebihi kapasitas -> harapan 409."
+          }
+        }
+      ]
+    }
+  ]
+}

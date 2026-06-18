@@ -142,4 +142,86 @@ class MessagePublisherService
             ]);
         }
     }
+
+    /**
+     * Publish event route.seat_released ke message API dosen.
+     * Dipakai saat pembatalan booking / gagal bayar (kompensasi reserve-seats).
+     * Sama seperti publishSeatReserved: gagal hanya di-log, tidak throw.
+     *
+     * @param  string  $bearerToken JWT token
+     * @param  int     $routeId
+     * @param  string  $bookingReference
+     * @param  int     $releasedSeats     Jumlah kursi yang dikembalikan
+     * @param  int     $availableSeats    Sisa kursi setelah dikembalikan
+     * @param  string  $receiptNumber     ReceiptNumber audit RELEASE_SEATS
+     */
+    public function publishSeatReleased(
+        string $bearerToken,
+        int    $routeId,
+        string $bookingReference,
+        int    $releasedSeats,
+        int    $availableSeats,
+        string $receiptNumber
+    ): void {
+        $event = [
+            'event_id'     => Str::uuid()->toString(),
+            'event_type'   => 'route.seat_released',
+            'occurred_at'  => now()->toIso8601String(),
+            'service_name' => env('SERVICE_NAME', 'Route-Schedule-Service'),
+            'data'         => [
+                'route_id'             => $routeId,
+                'booking_reference'    => $bookingReference,
+                'released_seats'       => $releasedSeats,
+                'available_seats'      => $availableSeats,
+                'audit_receipt_number' => $receiptNumber,
+            ],
+        ];
+
+        $payload = [
+            'team_id'     => $this->teamId,
+            'routing_key' => $event['event_type'],
+            'message'     => $event,
+        ];
+
+        try {
+            Log::info('[MessagePublisher] Mengirim event', [
+                'event_type' => $event['event_type'],
+                'route_id'   => $routeId,
+            ]);
+
+            $authToken = $this->getFreshM2mToken()
+                ?? (!empty($this->m2mToken) ? $this->m2mToken : $bearerToken);
+
+            $headers = [
+                'Authorization' => 'Bearer ' . $authToken,
+                'Content-Type'  => 'application/json',
+            ];
+            if (!empty($this->m2mApiKey)) {
+                $headers['X-API-KEY'] = $this->m2mApiKey;
+            }
+
+            $response = Http::withHeaders($headers)
+                ->timeout(10)
+                ->post($this->publishUrl, $payload);
+
+            if ($response->successful()) {
+                Log::info('[MessagePublisher] Event berhasil dipublish', [
+                    'event_id'   => $event['event_id'],
+                    'event_type' => $event['event_type'],
+                    'status'     => $response->status(),
+                    'response'   => $response->body(),
+                ]);
+            } else {
+                Log::warning('[MessagePublisher] Event gagal dipublish', [
+                    'status'   => $response->status(),
+                    'response' => $response->body(),
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Log::error('[MessagePublisher] Exception saat publish event', [
+                'error'   => $e->getMessage(),
+                'payload' => $payload,
+            ]);
+        }
+    }
 }
