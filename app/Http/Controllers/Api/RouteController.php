@@ -18,8 +18,27 @@ class RouteController extends Controller
         security: [['IAEApiKey' => []]],
         tags: ['Routes'],
         responses: [
-            new \OpenApi\Attributes\Response(response: 200, description: 'Routes retrieved successfully'),
-            new \OpenApi\Attributes\Response(response: 401, description: 'Unauthorized')
+            new \OpenApi\Attributes\Response(
+                response: 200,
+                description: 'Routes retrieved successfully',
+                content: new \OpenApi\Attributes\JsonContent(
+                    properties: [
+                        new \OpenApi\Attributes\Property(property: 'status', type: 'string', example: 'success'),
+                        new \OpenApi\Attributes\Property(property: 'message', type: 'string', example: 'Routes retrieved successfully'),
+                        new \OpenApi\Attributes\Property(property: 'data', type: 'array', items: new \OpenApi\Attributes\Items(type: 'object')),
+                    ]
+                )
+            ),
+            new \OpenApi\Attributes\Response(
+                response: 401,
+                description: 'Unauthorized',
+                content: new \OpenApi\Attributes\JsonContent(
+                    properties: [
+                        new \OpenApi\Attributes\Property(property: 'status', type: 'string', example: 'error'),
+                        new \OpenApi\Attributes\Property(property: 'message', type: 'string', example: 'Unauthorized'),
+                    ]
+                )
+            )
         ]
     )]
     public function index()
@@ -47,9 +66,37 @@ class RouteController extends Controller
             )
         ],
         responses: [
-            new \OpenApi\Attributes\Response(response: 200, description: 'Route retrieved successfully'),
-            new \OpenApi\Attributes\Response(response: 401, description: 'Unauthorized'),
-            new \OpenApi\Attributes\Response(response: 404, description: 'Route not found')
+            new \OpenApi\Attributes\Response(
+                response: 200,
+                description: 'Route retrieved successfully',
+                content: new \OpenApi\Attributes\JsonContent(
+                    properties: [
+                        new \OpenApi\Attributes\Property(property: 'status', type: 'string', example: 'success'),
+                        new \OpenApi\Attributes\Property(property: 'message', type: 'string', example: 'Route retrieved successfully'),
+                        new \OpenApi\Attributes\Property(property: 'data', type: 'object'),
+                    ]
+                )
+            ),
+            new \OpenApi\Attributes\Response(
+                response: 401,
+                description: 'Unauthorized',
+                content: new \OpenApi\Attributes\JsonContent(
+                    properties: [
+                        new \OpenApi\Attributes\Property(property: 'status', type: 'string', example: 'error'),
+                        new \OpenApi\Attributes\Property(property: 'message', type: 'string', example: 'Unauthorized'),
+                    ]
+                )
+            ),
+            new \OpenApi\Attributes\Response(
+                response: 404,
+                description: 'Route not found',
+                content: new \OpenApi\Attributes\JsonContent(
+                    properties: [
+                        new \OpenApi\Attributes\Property(property: 'status', type: 'string', example: 'error'),
+                        new \OpenApi\Attributes\Property(property: 'message', type: 'string', example: 'Route not found'),
+                    ]
+                )
+            )
         ]
     )]
 
@@ -109,9 +156,38 @@ class RouteController extends Controller
             )
         ),
         responses: [
-            new \OpenApi\Attributes\Response(response: 201, description: 'Route created successfully'),
-            new \OpenApi\Attributes\Response(response: 401, description: 'Unauthorized'),
-            new \OpenApi\Attributes\Response(response: 422, description: 'Validation failed')
+            new \OpenApi\Attributes\Response(
+                response: 201,
+                description: 'Route created successfully',
+                content: new \OpenApi\Attributes\JsonContent(
+                    properties: [
+                        new \OpenApi\Attributes\Property(property: 'status', type: 'string', example: 'success'),
+                        new \OpenApi\Attributes\Property(property: 'message', type: 'string', example: 'Route created successfully'),
+                        new \OpenApi\Attributes\Property(property: 'data', type: 'object'),
+                    ]
+                )
+            ),
+            new \OpenApi\Attributes\Response(
+                response: 401,
+                description: 'Unauthorized',
+                content: new \OpenApi\Attributes\JsonContent(
+                    properties: [
+                        new \OpenApi\Attributes\Property(property: 'status', type: 'string', example: 'error'),
+                        new \OpenApi\Attributes\Property(property: 'message', type: 'string', example: 'Unauthorized'),
+                    ]
+                )
+            ),
+            new \OpenApi\Attributes\Response(
+                response: 422,
+                description: 'Validation failed',
+                content: new \OpenApi\Attributes\JsonContent(
+                    properties: [
+                        new \OpenApi\Attributes\Property(property: 'status', type: 'string', example: 'error'),
+                        new \OpenApi\Attributes\Property(property: 'message', type: 'string', example: 'Validation failed'),
+                        new \OpenApi\Attributes\Property(property: 'errors', type: 'object', nullable: true),
+                    ]
+                )
+            )
         ]
     )]
     public function store(Request $request)

@@ -20,6 +20,9 @@ services:
             IAE_API_KEY: '${IAE_API_KEY:-102022400143}'
             SERVICE_NAME: '${SERVICE_NAME:-Route-Schedule-Service}'
             API_VERSION: '${API_VERSION:-v1}'
+            # Selalu regenerate dokumentasi Swagger supaya URL server selalu benar
+            L5_SWAGGER_GENERATE_ALWAYS: 'true'
+            L5_SWAGGER_CONST_HOST: 'http://localhost:8080'
         networks:
             - iae
         depends_on:

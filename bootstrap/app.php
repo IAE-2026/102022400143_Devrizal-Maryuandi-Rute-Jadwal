@@ -6,7 +6,6 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
-use Throwable;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -40,7 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Any other exception (404 not found, 405, 500, etc.) on api/* ->
         // IAE-T2 error wrapper, so the detector always sees the standard shape.
-        $exceptions->render(function (Throwable $e, Request $request) {
+        $exceptions->render(function (\Throwable $e, Request $request) {
             if (! $request->is('api/*')) {
                 return null;
             }

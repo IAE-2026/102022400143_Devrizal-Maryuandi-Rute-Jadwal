@@ -24,7 +24,10 @@ echo "==> Menjalankan migrasi + seeder..."
 php artisan migrate --force --seed || php artisan migrate --force
 
 echo "==> Membersihkan & cache config..."
-php artisan config:clear || true
+php artisan config:cache || true
+
+echo "==> Generate dokumentasi Swagger (URL server :8080)..."
+php artisan l5-swagger:generate || true
 
 echo "==> Menjalankan server di 0.0.0.0:8000"
 exec php artisan serve --host=0.0.0.0 --port=8000

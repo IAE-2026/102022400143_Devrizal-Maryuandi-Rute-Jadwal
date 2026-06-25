@@ -1,6 +1,6 @@
 <?php
 
-namespace App\OpenApi;
+namespace App\OpenAPI;
 
 use OpenApi\Attributes as OA;
 
@@ -10,7 +10,7 @@ use OpenApi\Attributes as OA;
     description: 'REST API documentation for Route & Schedule Service in IAE Assignment 2.'
 )]
 #[OA\Server(
-    url: 'http://localhost',
+    url: 'http://localhost:8080',
     description: 'Local Docker server'
 )]
 #[OA\SecurityScheme(
