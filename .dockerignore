@@ -1,0 +1,14 @@
+# Jangan copy vendor/node_modules lokal — di-install fresh di dalam container.
+# Ini penting karena vendor lokal kamu rusak/tidak lengkap.
+vendor
+composer.lock
+node_modules
+.git
+.env
+storage/logs/*.log
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*.php
+npm-debug.log
+yarn-error.log
+.DS_Store
