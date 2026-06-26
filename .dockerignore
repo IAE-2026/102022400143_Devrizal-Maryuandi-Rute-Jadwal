@@ -1,7 +1,6 @@
 # Jangan copy vendor/node_modules lokal — di-install fresh di dalam container.
 # Ini penting karena vendor lokal kamu rusak/tidak lengkap.
 vendor
-composer.lock
 node_modules
 .git
 .env
