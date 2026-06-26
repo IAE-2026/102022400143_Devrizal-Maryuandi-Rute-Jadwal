@@ -23,12 +23,20 @@ fi
 echo "==> Menjalankan migrasi + seeder..."
 php artisan migrate --force --seed || php artisan migrate --force
 
-echo "==> Membersihkan config & cache lama (cegah error cache GraphQL)..."
+echo "==> Membersihkan SEMUA cache lama (config, route, view) — cegah 404 & error cache..."
 php artisan config:clear || true
+php artisan route:clear || true
 php artisan cache:clear || true
+php artisan view:clear || true
+
+echo "==> Daftar route aktif (debug — pastikan /api/v1/routes muncul):"
+php artisan route:list --path=api || true
 
 echo "==> Generate dokumentasi Swagger..."
 php artisan l5-swagger:generate || true
 
-echo "==> Menjalankan server di 0.0.0.0:8000"
-exec php artisan serve --host=0.0.0.0 --port=8000
+echo "==> Menjalankan server di 0.0.0.0:8000 (PHP built-in server, router Laravel)"
+# Pakai 'php -S' dengan document root ./public, BUKAN 'php artisan serve',
+# karena artisan serve memvalidasi Host header & bisa menolak koneksi dari
+# luar container (penyebab 404/connection refused saat di balik port-mapping).
+exec php -S 0.0.0.0:8000 -t public public/index.php

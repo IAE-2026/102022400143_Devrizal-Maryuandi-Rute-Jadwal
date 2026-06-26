@@ -4,6 +4,8 @@ vendor
 node_modules
 .git
 .env
+# Cache yang ke-bake bisa bikin route /api/* jadi 404 — buang, biarkan di-generate fresh
+bootstrap/cache/*.php
 storage/logs/*.log
 storage/framework/cache/data/*
 storage/framework/sessions/*

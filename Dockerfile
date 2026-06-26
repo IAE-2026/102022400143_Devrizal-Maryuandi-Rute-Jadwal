@@ -18,17 +18,19 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Copy composer files first for layer caching
-COPY composer.json composer.lock ./
+# Copy composer.json dulu (lock lama sengaja TIDAK dipakai karena mengandung
+# paket typo 'laravel/pao'). Layer ini ke-cache selama composer.json tak berubah.
+COPY composer.json ./
 
-# Install dependencies quickly using composer install
-RUN composer install --no-interaction --prefer-dist --no-scripts
+# Resolve & download dependency. Pakai 'update' untuk membuat lock bersih.
+# --no-dev mempercepat (skip phpunit dkk), --no-autoloader ditunda ke setelah COPY.
+RUN composer update --no-interaction --prefer-dist --no-scripts --no-dev --no-autoloader
 
-# Copy seluruh source code (vendor & lock dikecualikan via .dockerignore)
+# Copy seluruh source code (vendor & lock lama dikecualikan via .dockerignore)
 COPY . .
 
-# Sekarang kode sumber (termasuk 'artisan') sudah ada, jalankan dump-autoload
-RUN composer dump-autoload --optimize
+# Generate autoloader optimal (cepat, tidak resolve ulang dependency)
+RUN composer dump-autoload --optimize --no-dev
 
 # Pastikan folder storage & cache bisa ditulis
 RUN chmod -R 775 storage bootstrap/cache
