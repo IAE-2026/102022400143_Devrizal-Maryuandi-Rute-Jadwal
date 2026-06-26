@@ -1,44 +1,43 @@
-# IAE-T2 Route & Schedule Service - standalone Dockerfile
-# Tidak bergantung pada Laravel Sail. Berbasis image PHP resmi.
 FROM php:8.4-cli
 
-# Install dependency sistem + ekstensi PHP yang dibutuhkan Laravel + MySQL
-RUN apt-get update && apt-get install -y \
-        git \
-        unzip \
-        libzip-dev \
-        libpng-dev \
-        libonig-dev \
-        libxml2-dev \
-    && docker-php-ext-install pdo_mysql mbstring zip bcmath dom xml \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
 
-# Ambil Composer dari image resmi
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git unzip libonig-dev default-mysql-client \
+    && docker-php-ext-install mbstring pdo pdo_mysql \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-WORKDIR /var/www/html
-
-# Copy composer.json dulu (lock lama sengaja TIDAK dipakai karena mengandung
-# paket typo 'laravel/pao'). Layer ini ke-cache selama composer.json tak berubah.
+# Copy composer.json saja; lock di-generate fresh di dalam container supaya
+# build tetap jalan tanpa composer.lock yang ikut di-commit, dan dependency
+# (webonyx/graphql-php, dst.) selalu ter-resolve bersih.
 COPY composer.json ./
+RUN composer update --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-scripts
 
-# Resolve & download dependency. Pakai 'update' untuk membuat lock bersih.
-# --no-dev mempercepat (skip phpunit dkk), --no-autoloader ditunda ke setelah COPY.
-RUN composer update --no-interaction --prefer-dist --no-scripts --no-dev --no-autoloader
-
-# Copy seluruh source code (vendor & lock lama dikecualikan via .dockerignore)
 COPY . .
+RUN composer dump-autoload --optimize \
+    && mkdir -p storage/app storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
 
-# Generate autoloader optimal (cepat, tidak resolve ulang dependency)
-RUN composer dump-autoload --optimize --no-dev
+ENV APP_ENV=production
+ENV APP_DEBUG=false
+ENV APP_KEY=base64:st2FXQB17Q9BmQ1YSRVAF7qh02lXXPHCoFxf5AIfgYg=
+ENV APP_URL=http://localhost:3001
+ENV PORT=3001
+ENV DB_CONNECTION=mysql
+ENV DB_HOST=mysql
+ENV DB_PORT=3306
+ENV DB_DATABASE=service_a
+ENV DB_USERNAME=service_a
+ENV DB_PASSWORD=service_a_secret
+ENV IAE_INTERNAL_KEY=102022400143
+ENV IAE_API_KEYS=102022400143
 
-# Pastikan folder storage & cache bisa ditulis
-RUN chmod -R 775 storage bootstrap/cache
+EXPOSE 3001
 
-# Entrypoint: tunggu DB, generate key kalau perlu, migrate+seed, lalu serve
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh \
+    && chmod +x /usr/local/bin/entrypoint.sh
 
-EXPOSE 8000
-
-ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["/usr/local/bin/entrypoint.sh"]

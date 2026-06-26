@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'route_schedule' => [
+        'internal_api_key' => env('IAE_INTERNAL_KEY', '102022400143'),
+        'valid_api_keys' => explode(',', env('IAE_API_KEYS', '102022400143')),
+    ],
+
 ];

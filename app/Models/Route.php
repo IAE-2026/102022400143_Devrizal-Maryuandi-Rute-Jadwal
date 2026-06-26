@@ -2,13 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Route extends Model
 {
-    use HasFactory;
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
     protected $fillable = [
+        'id',
         'route_code',
         'origin',
         'destination',
@@ -22,5 +25,12 @@ class Route extends Model
         'seat_capacity',
         'available_seats',
         'status',
+    ];
+
+    protected $casts = [
+        'departure_date' => 'date',
+        'price' => 'integer',
+        'seat_capacity' => 'integer',
+        'available_seats' => 'integer',
     ];
 }

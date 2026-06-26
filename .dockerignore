@@ -1,15 +1,9 @@
-# Jangan copy vendor/node_modules lokal — di-install fresh di dalam container.
-# Ini penting karena vendor lokal kamu rusak/tidak lengkap.
-vendor
-node_modules
 .git
 .env
-# Cache yang ke-bake bisa bikin route /api/* jadi 404 — buang, biarkan di-generate fresh
-bootstrap/cache/*.php
-storage/logs/*.log
-storage/framework/cache/data/*
+node_modules
+vendor
+storage/framework/cache/*
 storage/framework/sessions/*
-storage/framework/views/*.php
+storage/framework/views/*
+storage/logs/*.log
 npm-debug.log
-yarn-error.log
-.DS_Store

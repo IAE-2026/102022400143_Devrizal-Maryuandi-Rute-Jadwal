@@ -4,11 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::create('routes', function (Blueprint $table) {
-            $table->id();
+            $table->string('id')->primary();
             $table->string('route_code')->unique();
             $table->string('origin');
             $table->string('destination');
@@ -23,6 +24,10 @@ return new class extends Migration {
             $table->integer('available_seats');
             $table->string('status')->default('available');
             $table->timestamps();
+
+            $table->index('status');
+            $table->index('origin');
+            $table->index('destination');
         });
     }
 

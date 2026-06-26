@@ -1,28 +1,25 @@
 <?php
 
-use App\Http\Controllers\Api\RouteController;
+use App\Http\Controllers\DocsController;
+use App\Http\Controllers\GraphqlController;
+use App\Http\Controllers\RouteController;
+use App\Http\Middleware\RequireIaeApiKey;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('v1')
-    ->middleware('iae.key')
-    ->group(function () {
-        // Route spesifik (/routes) WAJIB didaftarkan DULU sebelum route
-        // dinamis (/{id}), supaya '/routes' tidak ditangkap sebagai {id}.
-        Route::get('/routes', [RouteController::class, 'index']);
-        Route::get('/routes/{id}', [RouteController::class, 'show']);
-        Route::post('/routes', [RouteController::class, 'store']);
+// CORS preflight (OPTIONS) sudah ditangani global oleh App\Http\Middleware\CorsHeaders.
+// Tidak ada route catch-all "OPTIONS /{any}" supaya path tak dikenal tetap
+// membalas 404 (Not Found), bukan 405 (Method Not Allowed).
 
-        // Alias resource-kosong untuk skrip grader yang menguji /api/v1/ langsung.
-        Route::get('/', [RouteController::class, 'index']);
-        Route::post('/', [RouteController::class, 'store']);
-        Route::get('/{id}', [RouteController::class, 'show'])->whereNumber('id');
-    });
+Route::get('/api-docs', [DocsController::class, 'swaggerUi']);
+Route::get('/api-docs/', [DocsController::class, 'swaggerUi']);
+Route::get('/openapi.json', [DocsController::class, 'openApi']);
 
-// Catch-all for any unmatched API route -> IAE-T2 error wrapper.
-Route::fallback(function () {
-    return response()->json([
-        'status' => 'error',
-        'message' => 'Resource not found',
-        'errors' => null,
-    ], 404);
+Route::get('/graphql', [GraphqlController::class, 'playground']);
+
+Route::middleware(RequireIaeApiKey::class)->group(function (): void {
+    Route::get('/api/v1/routes', [RouteController::class, 'index']);
+    Route::get('/api/v1/routes/{id}', [RouteController::class, 'show']);
+    Route::post('/api/v1/routes', [RouteController::class, 'store']);
+
+    Route::post('/graphql', [GraphqlController::class, 'query']);
 });

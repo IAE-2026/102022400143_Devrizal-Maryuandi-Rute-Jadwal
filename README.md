@@ -1,58 +1,163 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Service Rute & Jadwal (Smart Transport)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Service Laravel untuk Tugas 2 mata kuliah **BBK2HAB3 - Integrasi Aplikasi Enterprise**. Service ini mengelola data rute & jadwal perjalanan (daftar rute, detail rute, dan pembuatan rute baru). Repository ini berisi hanya Service Rute & Jadwal dari ekosistem Smart Transport (service lain dikelola di repository terpisah oleh anggota kelompok lain).
 
-## About Laravel
+## Identitas
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+| Parameter | Nilai |
+|-----------|-------|
+| **Mata Kuliah** | BBK2HAB3 - Integrasi Aplikasi Enterprise |
+| **Mahasiswa** | Devrizal Maryuandi |
+| **NIM / `X-IAE-KEY`** | `102022400143` |
+| **Resource** | `routes` |
+| **Framework** | Laravel 13 (PHP 8.4) |
+| **Database** | MySQL 8.0 |
+| **Port** | `3001` |
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Endpoint REST
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Semua endpoint wajib menyertakan header:
 
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```http
+X-IAE-KEY: 102022400143
+Content-Type: application/json
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+| Method | Path | Fungsi |
+|--------|------|--------|
+| `GET` | `/api/v1/routes` | Mengambil daftar seluruh rute & jadwal |
+| `GET` | `/api/v1/routes/{id}` | Mengambil detail satu rute |
+| `POST` | `/api/v1/routes` | Membuat rute & jadwal baru |
 
-## Contributing
+Semua respons mengikuti **Standard Integration Contract** dengan bentuk konsisten:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```json
+{ "status": "success | error", "message": "...", "data": {}, "errors": null }
+```
 
-## Code of Conduct
+Error level framework (`404` / `405` / `422` / `500`) juga otomatis dibungkus ke format yang sama.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Contoh body POST `/api/v1/routes`
 
-## Security Vulnerabilities
+```json
+{
+  "route_code": "BDG-JKT-003",
+  "origin": "Bandung",
+  "destination": "Jakarta",
+  "departure_point": "Pool Dago",
+  "arrival_point": "Terminal Lebak Bulus",
+  "departure_date": "2026-05-23",
+  "departure_time": "09:00",
+  "arrival_time": "12:30",
+  "vehicle_type": "Travel Executive",
+  "price": 150000,
+  "seat_capacity": 12,
+  "available_seats": 12,
+  "status": "available"
+}
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Nilai `status` yang valid: `available`, `full`, `inactive`, `delayed`.
 
-## License
+## Dokumentasi API & GraphQL
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+| Halaman | URL |
+|---------|-----|
+| Swagger UI | `http://localhost:3001/api-docs` |
+| OpenAPI JSON | `http://localhost:3001/openapi.json` |
+| GraphQL Playground | `http://localhost:3001/graphql` |
+| Health check | `http://localhost:3001/health` |
+
+Contoh query GraphQL:
+
+```graphql
+{
+  routes {
+    id
+    route_code
+    origin
+    destination
+    departure_time
+    price
+    available_seats
+    status
+  }
+}
+```
+
+## Menjalankan dengan Docker (Direkomendasikan)
+
+Pastikan Docker Desktop sudah aktif.
+
+```bash
+docker compose up -d --build
+```
+
+Setelah container sehat, akses:
+
+- `http://localhost:3001/health`
+- `http://localhost:3001/api-docs`
+- `http://localhost:3001/graphql`
+
+Stack Docker terdiri dari **dua container**:
+
+| Container | Image | Port host |
+|-----------|-------|-----------|
+| `app` | Build dari `Dockerfile` | `3001` |
+| `mysql` | `mysql:8.0` | `3308` |
+
+Migrasi dan seeder otomatis dijalankan oleh `docker/entrypoint.sh` setiap kontainer app start.
+
+Hentikan stack:
+
+```bash
+docker compose down          # tanpa hapus data
+docker compose down -v       # ikut menghapus volume MySQL
+```
+
+## Menjalankan Lokal (tanpa Docker)
+
+Prasyarat: PHP 8.3+, Composer, MySQL 8.
+
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+# sesuaikan kredensial DB pada .env (DB_HOST, DB_DATABASE, dst.)
+php artisan migrate --seed
+php artisan serve --host=0.0.0.0 --port=3001
+```
+
+## Pengujian
+
+Test otomatis memakai SQLite in-memory, jadi **tidak butuh MySQL** dan bisa langsung dijalankan setelah clone:
+
+```bash
+composer install
+php artisan test
+```
+
+Cakupan test (`tests/Feature/RouteApiTest.php`): penolakan tanpa `X-IAE-KEY` (401), key tidak valid (403), `GET` daftar rute (200 + wrapper), detail tidak ditemukan (404 + wrapper), `POST` membuat rute (201), `POST` tanpa field wajib (422 + wrapper), kursi melebihi kapasitas (422), path tak dikenal (404, bukan 405), dan method tidak diizinkan (405 + wrapper).
+
+### Smoke test cepat (setelah service jalan di port 3001)
+
+```bash
+# Tanpa key -> 401
+curl -i http://localhost:3001/api/v1/routes
+
+# Dengan key -> 200
+curl -i -H "X-IAE-KEY: 102022400143" http://localhost:3001/api/v1/routes
+
+# Path tak dikenal -> 404 (bukan 405)
+curl -i -H "X-IAE-KEY: 102022400143" http://localhost:3001/api/v1/tidak-ada
+```
+
+## Lihat juga
+
+- `AI_LOG_PROMPTING.md` — log prompt AI selama pengembangan.
+
+---
+
+## Catatan struktur
+
+Struktur service ini diselaraskan (benchmark) dengan service rekan satu ekosistem Smart Transport agar konsisten lintas-anggota: pola Docker (`Dockerfile` + `docker/entrypoint.sh` + `docker-compose.yml`), middleware (`RequireIaeApiKey`, `CorsHeaders`), service layer (`RouteStore`), controller REST (`RouteController`), GraphQL custom (`GraphqlController` berbasis `webonyx/graphql-php`), dan dokumentasi (`DocsController` — Swagger UI + OpenAPI JSON) mengikuti kontrak integrasi standar yang sama. Tema disesuaikan ke domain **rute & jadwal** (resource `routes`, port `3001`, `X-IAE-KEY: 102022400143`).
