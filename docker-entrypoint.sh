@@ -23,10 +23,13 @@ fi
 echo "==> Menjalankan migrasi + seeder..."
 php artisan migrate --force --seed || php artisan migrate --force
 
+echo "==> Publish Lighthouse (GraphQL) config..."
+php artisan vendor:publish --tag=lighthouse-config 2>/dev/null || true
+
 echo "==> Membersihkan & cache config..."
 php artisan config:cache || true
 
-echo "==> Generate dokumentasi Swagger (URL server :8080)..."
+echo "==> Generate dokumentasi Swagger..."
 php artisan l5-swagger:generate || true
 
 echo "==> Menjalankan server di 0.0.0.0:8000"
