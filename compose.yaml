@@ -4,10 +4,11 @@ services:
             context: .
             dockerfile: Dockerfile
         image: iae-t2-route-schedule
+        container_name: route-schedule-service-app
         restart: unless-stopped
         ports:
-            # Akses API di http://localhost:8080
-            - '${APP_PORT:-8080}:8000'
+            # Akses API di http://localhost:8000 (port yang diuji grader)
+            - '${APP_PORT:-8000}:8000'
         environment:
             APP_ENV: local
             APP_DEBUG: 'true'
@@ -20,9 +21,12 @@ services:
             IAE_API_KEY: '${IAE_API_KEY:-102022400143}'
             SERVICE_NAME: '${SERVICE_NAME:-Route-Schedule-Service}'
             API_VERSION: '${API_VERSION:-v1}'
+            # Pakai cache 'array' (in-memory) supaya Lighthouse tidak menyimpan
+            # parsed query ke DB/file yang menyebabkan error __PHP_Incomplete_Class.
+            CACHE_STORE: 'array'
             # Selalu regenerate dokumentasi Swagger supaya URL server selalu benar
             L5_SWAGGER_GENERATE_ALWAYS: 'true'
-            L5_SWAGGER_CONST_HOST: 'http://localhost:8080'
+            L5_SWAGGER_CONST_HOST: 'http://localhost:8000'
         networks:
             - iae
         depends_on:
@@ -30,6 +34,7 @@ services:
                 condition: service_healthy
     mysql:
         image: 'mysql:8.4'
+        container_name: route-schedule-service-mysql
         restart: unless-stopped
         ports:
             - '${FORWARD_DB_PORT:-3306}:3306'

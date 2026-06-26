@@ -23,11 +23,9 @@ fi
 echo "==> Menjalankan migrasi + seeder..."
 php artisan migrate --force --seed || php artisan migrate --force
 
-echo "==> Publish Lighthouse (GraphQL) config..."
-php artisan vendor:publish --tag=lighthouse-config 2>/dev/null || true
-
-echo "==> Membersihkan & cache config..."
-php artisan config:cache || true
+echo "==> Membersihkan config & cache lama (cegah error cache GraphQL)..."
+php artisan config:clear || true
+php artisan cache:clear || true
 
 echo "==> Generate dokumentasi Swagger..."
 php artisan l5-swagger:generate || true

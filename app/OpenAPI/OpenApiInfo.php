@@ -10,7 +10,7 @@ use OpenApi\Attributes as OA;
     description: 'REST API documentation for Route & Schedule Service in IAE Assignment 2.'
 )]
 #[OA\Server(
-    url: 'http://localhost:8080',
+    url: 'http://localhost:8000',
     description: 'Local Docker server'
 )]
 #[OA\SecurityScheme(
